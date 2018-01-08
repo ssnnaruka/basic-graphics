@@ -19,7 +19,7 @@ echo "Connected successfully...";
 
 function display()
 {
-    echo "hello ";//.$_POST["studentname"];
+    echo "hello "; //.$_POST["studentname"];
 }
 if(isset($_POST['submit']))
 {
@@ -48,7 +48,8 @@ if(isset($_POST['submit']))
     <div id="container" style="width: 100%; height: 500px; padding:10px;">
         <div id="container_holder" style="position:relative; width:65%; height:100%; box-shadow: 0px 0px 5px grey; background-color:#e5e5e5; display: inline-block;"></div>
         <div  style=" box-shadow: 0px 0px 5px grey; margin-right: 10px; width:25%; height:100%; padding:10px; float: right;">
-            <form id="text-area-pane" method="post" action="index.php">
+            <!-- <form id="text-area-pane" method="post" action="index.php"> -->
+            <form id="text-area-pane">
             <button type="submit" name="submit" class="btn btn-default" >Save Template</button>
             </form>
         </div>
@@ -198,6 +199,14 @@ $(document).ready(function() {
         console.log(this.files);
         // grab the first image in the FileList object and pass it to the function
         renderImage(this.files[0])
+    });
+    $("#text-area-pane").submit(function(ev){
+        console.log("form submit called");
+        var data = $("#text-area-pane").serializeArray();
+        console.log(JSON.stringify(data));
+        var x="<?php display(); ?>";
+        alert(x);
+        return false;
     });
 });
 </script>
