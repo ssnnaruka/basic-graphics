@@ -1,3 +1,31 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+} 
+
+
+function saveImageTemp() {
+    echo "Hello world!";
+}
+echo "Connected successfully...";
+
+function display()
+{
+    echo "hello ";//.$_POST["studentname"];
+}
+if(isset($_POST['submit']))
+{
+   display();
+} 
+?>
 <!DOCTYPE html>
 <html>
 
@@ -19,10 +47,14 @@
 
     <div id="container" style="width: 100%; height: 500px; padding:10px;">
         <div id="container_holder" style="position:relative; width:65%; height:100%; box-shadow: 0px 0px 5px grey; background-color:#e5e5e5; display: inline-block;"></div>
-        <div id="text-area-pane" style=" box-shadow: 0px 0px 5px grey; margin-right: 10px; width:25%; height:100%; padding:10px; float: right;">
+        <div  style=" box-shadow: 0px 0px 5px grey; margin-right: 10px; width:25%; height:100%; padding:10px; float: right;">
+            <form id="text-area-pane" method="post" action="index.php">
+            <button type="submit" name="submit" class="btn btn-default" >Save Template</button>
+            </form>
         </div>
     </div>
     <button type="button" class="btn btn-success" onclick="downloadImage()">Download Image</button>
+    <!-- <button type="button" class="btn btn-default" >Save Template</button> -->
 
     <!-- <div class="container" id="div123" style="display: none;">
         <div class="row">
@@ -46,7 +78,7 @@
         <video id="video" width="500px" height="500px" autoplay></video>
         <canvas id="canvas" width="500px" height="500px"></canvas>
     </div> -->
-</body>
+
 <!-- <script type="text/javascript" src="js/video.js"></script> -->
 <script type="text/javascript">
 console.log("CORE READY");
@@ -68,7 +100,7 @@ function addCssTextArea(id) {
     // onchange="textChanged(' + id +', ' + id + '-area)"
     $("#text-area-pane").append('<div class="form-group">' +
         '<label for="comment">' + id + ':</label>'
-        + '<textarea class="form-control" rows="3"  id="' + id + '-area" placeholder="' + id + '-area"></textarea>'
+        + '<textarea class="form-control" rows="3" name="' + id + '" id="' + id + '-area" placeholder="' + id + '-area"></textarea>'
         + "<br/>"
         +'<button type="button" class="btn btn-danger right" id="' + id + '-btn">X</button>'
         + '</div>');
@@ -169,5 +201,5 @@ $(document).ready(function() {
     });
 });
 </script>
-
+</body>
 </html>
