@@ -1,31 +1,3 @@
-<?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-} 
-
-
-function saveImageTemp() {
-    echo "Hello world!";
-}
-echo "Connected successfully...";
-
-function display()
-{
-    echo "hello "; //.$_POST["studentname"];
-}
-if(isset($_POST['submit']))
-{
-   display();
-} 
-?>
 <!DOCTYPE html>
 <html>
 
@@ -55,32 +27,6 @@ if(isset($_POST['submit']))
         </div>
     </div>
     <button type="button" class="btn btn-success" onclick="downloadImage()">Download Image</button>
-    <!-- <button type="button" class="btn btn-default" >Save Template</button> -->
-
-    <!-- <div class="container" id="div123" style="display: none;">
-        <div class="row">
-            <div class="col-sm-4">
-                <h3>Actions</h3>
-                <button onclick="addDiv()">Add DIV</button>
-            </div>
-            <div class="col-sm-4" style="display: none;">
-                <h3>Column 2</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
-                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>
-            </div>
-            <div class="col-sm-4" style="display: none;">
-                <h3>Column 3</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
-                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>
-            </div>
-        </div>
-    </div>
-    <div>
-        <video id="video" width="500px" height="500px" autoplay></video>
-        <canvas id="canvas" width="500px" height="500px"></canvas>
-    </div> -->
-
-<!-- <script type="text/javascript" src="js/video.js"></script> -->
 <script type="text/javascript">
 console.log("CORE READY");
 
@@ -201,12 +147,44 @@ $(document).ready(function() {
         renderImage(this.files[0])
     });
     $("#text-area-pane").submit(function(ev){
+        ev.preventDefault();
         console.log("form submit called");
-        var data = $("#text-area-pane").serializeArray();
-        console.log(JSON.stringify(data));
-        var x="<?php display(); ?>";
-        alert(x);
+        // var data = $("#text-area-pane").serializeArray();
+        var data1 = $("#text-area-pane").serialize();
+        // console.log(JSON.stringify(data));
+        // var a = JSON.stringify(data);
+
+        console.log($("#aInput")[0].files[0]);
+        var form_data = new FormData();
+        form_data.append("file", $("#aInput")[0].files[0]);
+        // if($("#aInput")[0].files[0] !== undefined) {
+        //     form_data.append("file", $("#aInput")[0].files[0]);    
+        // } else {
+        //     alert("File is missing cannot save template");
+        //     return false;
+        // }
+        form_data.append("data", data1);
+        
+        $.ajax({
+           url : "database.php", // the resource where youre request will go throw
+           type : "POST", // HTTP verb
+           data : form_data,
+           // dataType : "multipart/form-data",
+           processData: false,
+           contentType: false,
+           success : function (response) {
+              //in your case, you should return from the php method some fomated data that you  //need throw the data var object in param
+              console.log("response");
+              console.log(response);
+                 //data = toJson(response) // optional
+                //heres your code
+           },
+           error : function(error, txt){
+            console.log(txt);
+           } 
+        });
         return false;
+
     });
 });
 </script>
