@@ -18,11 +18,11 @@
         </div>
     </div>
     <div class="col-md-6">
-        <div class="form-group">
+        <div class="form-group admin-only">
             <label for="aInput">Select File Input</label>
             <input type="file" name="file" class="form-control-file" id="aInput">
         </div>
-        <button type="button" class="btn btn-primary" onclick="addDiv()">Add Pane</button>
+        <button type="button" class="btn btn-primary admin-only" onclick="addDiv()">Add Pane</button>
 
         <div id="container" style="width: 100%; height: 500px; padding:10px;">
             <div id="container_holder" style="position:relative; width:100%; height:100%; box-shadow: 0px 0px 5px grey; background-color:#e5e5e5; display: inline-block;"></div>     
@@ -32,7 +32,7 @@
     <div class="col-md-3">
         <div  style=" box-shadow: 0px 0px 5px grey; margin-right: 10px; width:100%; height:100%; min-height:1000px; padding:10px;">
             <form id="text-area-pane">
-                <button type="submit" name="submit" class="btn btn-default" >Save Template</button>
+                <button type="submit" name="submit" class="btn btn-default admin-only" >Save Template</button>
             </form>
         </div>    
     </div>
@@ -43,17 +43,22 @@ console.log("CORE READY");
 
 var countDiv = 0;
 
+var isAdmin = true;
+var isEdit = false;
+
 function addDiv() {
+    isEdit = false;
     var date = Date.now();
     console.log("Add Div Called");
     $("#container_holder").append('<div style="" id="text-pane-' + date + '">hello</div>');
     $("#text-pane-" + date).css("position", "absolute");
-    $("#text-pane-" + date).css("top", 50 * countDiv + 10);
+    $("#text-pane-" + date).css("top", 0);
+    // $("#text-pane-" + date).css("top", 50 * countDiv + 10);
     addCssTextArea("text-pane-" + date);
     countDiv++;
 }
 
-function addCssTextArea(id) {
+function addCssTextArea(id, val) {
     console.log("Adding listener");
     // onchange="textChanged(' + id +', ' + id + '-area)"
     $("#text-area-pane").append('<div class="form-group">' +
@@ -98,9 +103,14 @@ function addCssTextArea(id) {
             }
         } else {
             $("#" + id).css("position", "absolute");
-            $("#" + id).css("top", 50 * countDiv + 10);
+            $("#" + id).css("top", 0);
+            // $("#" + id).css("top", 50 * countDiv + 10);
         }
     });
+    if(val !== undefined && val !== "") {
+        $("#" + id + '-area').val(val);
+    }
+    
 }
 
 //Creating dynamic link that automatically click
@@ -126,7 +136,6 @@ function printToFile(div) {
     });
 }
 
-
 function downloadImage(){
 	var aDiv = document.getElementById("container_holder");
     printToFile(aDiv);
@@ -134,23 +143,17 @@ function downloadImage(){
 
 // render the image in our view
 function renderImage(file) {
-
     // generate a new FileReader object
     var reader = new FileReader();
-
     // inject an image with the src url
     reader.onload = function(event) {
         the_url = event.target.result
-        // $('#container').html('<img style="width:50%; height:100%;" src="' + the_url + '" />');
+        // $('#container_holder').find("img").remove();
+        $('#container_holder').empty();
         $('#container_holder').append('<img style="top:0px; width:100%; height:100%;" src="' + the_url + '" />');
     }
-
     // when the file is read it triggers the onload event above.
     reader.readAsDataURL(file);
-}
-
-function clickPreTemp(a){
-    console.log(a);
 }
 
 function fetchTemp(){
@@ -166,13 +169,17 @@ function fetchTemp(){
                 for(var x = 0; x < res.length; x++){
                     // console.log(res[x]);
                     var a = res[x];
-                    $("#temp-selector").append('<img id="' + res[x].id + '" alt="' + x + '" src="upload/' + res[x].image + '" style="float:left; width:140px; height:140px; margin:5px;">');
-                    $("#" + res[x].id).on("click", function(ev){
-                        // console.log($(this).attr("alt"));
-                        // console.log(res[$(this).attr("alt")]);
-                        $('#container_holder').empty();
-                        $('#container_holder').append('<img style="top:0px; width:100%; height:100%;" src="upload/' + res[$(this).attr("alt")].image + '" />');
-                    });
+                    if(res[x].image !== undefined && res[x].image !== ""){
+                        $("#temp-selector").append('<img id="' + res[x].id + '" alt="' + x + '" src="upload/' + res[x].image + '" style="float:left; width:140px; height:140px; margin:5px;">');
+                        $("#" + res[x].id).on("click", function(ev){
+                            // console.log($(this).attr("alt"));
+                            // console.log(res[$(this).attr("alt")]);
+                            isEdit = true;
+                            $('#container_holder').empty();
+                            $('#container_holder').append('<img style="top:0px; width:100%; height:100%;" src="upload/' + res[$(this).attr("alt")].image + '" />');
+                            processTemplate(res[$(this).attr("alt")].config, res[$(this).attr("alt")].id);
+                        });
+                    }
                 }
            },
            error : function(error, txt){
@@ -181,60 +188,127 @@ function fetchTemp(){
         });
 }
 
+function processTemplate(data, key){
+    try {
+        data  = JSON.parse(data);
+        console.log(data);
+        if(data.data !== undefined) {
+            if(data.data.indexOf("=") > -1) {
+                data = data.data.split("=");
+                $("#container_holder").append('<div style="display:none; top:0px; position:absolute;" id="' + data[0] + '">hello</div>');
+                data[1] = decodeURIComponent(data[1]);
+                if(data[1].indexOf(";") > -1){
+                    var cssS = data[1].split(";");
+                    for(var z = 0; z < cssS.length; z++){
+                        if(cssS[z].indexOf(":") > -1) {
+                            cssS[z] = cssS[z].trim();
+                            var qS = cssS[z].split(":");
+                            if(qS[0] === "text"){
+                                $("#" + data[0]).show();
+                                $("#" + data[0]).text(qS[1]);
+                                if(isAdmin) {
+                                    userEditTextArea(data[0], data[1], key);
+                                } else {
+                                    userEditTextArea(data[0], qS[1]);
+                                }
+                            } else {
+                                $("#" + data[0]).css(qS[0], qS[1]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } catch(e) {
+        console.log(e);
+    }
+}
+
+function userEditTextArea(id, text, key){
+    if(isAdmin){
+        // TODO
+        $("#text-area-pane").find("div.form-group").remove();
+        $("#text-area-pane").append('<div class="form-group">' +
+        '<label for="idKey">ID:</label>'
+        + '<input class="form-control"  name="idKey" id="' + id + '-input" value="' + key + '" disabled />'
+        + '</div>');
+        addCssTextArea(id, text);
+    } else {
+        $("#text-area-pane").find("div.form-group").remove();
+        $("#text-area-pane").append('<div class="form-group">' +
+        '<label for="comment">' + id + ':</label>'
+        + '<textarea class="form-control" rows="3" name="' + id + '" id="' + id + '-area" placeholder="' + id + '-area"></textarea>'
+        + '</div>');
+        $("#" + id + '-area').val(text);
+        $("#" + id + '-area').on('change textInput input', function() {
+            $("#" + id).text($(this).val());
+        });
+    }
+}
 
 $(document).ready(function() {
-    console.log("Ready jquery");
+    console.info("JQ CORE ONLINE");
     fetchTemp();
     $("#aInput").change(function() {
-        console.log("Input Changed");
-        console.log(this.files);
+        console.info("File Selected");
+        isEdit = false;
+        $("#text-area-pane").find("div.form-group").remove();
         // grab the first image in the FileList object and pass it to the function
         renderImage(this.files[0])
     });
     $("#text-area-pane").submit(function(ev){
         ev.preventDefault();
-        console.log("form submit called");
-        // var data = $("#text-area-pane").serializeArray();
+        console.info("Submit in progress...");
         var data1 = $("#text-area-pane").serialize();
-        // console.log(JSON.stringify(data));
-        // var a = JSON.stringify(data);
 
-        console.log($("#aInput")[0].files[0]);
+        // console.log($("#aInput")[0].files[0]);
         var form_data = new FormData();
-        form_data.append("file", $("#aInput")[0].files[0]);
-        // if($("#aInput")[0].files[0] !== undefined) {
-        //     form_data.append("file", $("#aInput")[0].files[0]);    
-        // } else {
-        //     alert("File is missing cannot save template");
-        //     return false;
-        // }
+        if(!isEdit) {
+            if($("#aInput")[0].files[0] !== undefined) {
+                form_data.append("file", $("#aInput")[0].files[0]);    
+            } else {
+                alert("File is missing cannot save template");
+                return false;
+            }
+        }
+        if($("#text-area-pane").find("input").val() !== undefined) {
+            form_data.append("id", parseInt($("#text-area-pane").find("input").val()));    
+        }
         form_data.append("data", data1);
-        
         $.ajax({
            url : "database.php", // the resource where youre request will go throw
            type : "POST", // HTTP verb
            data : form_data,
-           // dataType : "multipart/form-data",
            processData: false,
            contentType: false,
            success : function (response) {
               //in your case, you should return from the php method some fomated data that you  //need throw the data var object in param
-              console.log("response");
-              console.log(response);
-                 //data = toJson(response) // optional
-                //heres your code
+              console.info("Upload Success");
+              fetchTemp();
            },
-           error : function(error, txt){
-            console.log(txt);
+           error : function(error, res){
+            console.error(res);
            } 
         });
         return false;
-
     });
+    if(isAdmin) {
+        adminOnly();
+    } else {
+        notAdmin();
+    }
 });
+
+function notAdmin(){
+    $(".admin-only").hide();
+}
+function adminOnly(){
+    $(".admin-only").show();
+}
 </script>
 
-<!-- text:!!! Hello World !!!;
+<!-- 
+text:!!! Hello World !!!;
 left:20px;
 top:50px;
 color:white;
@@ -245,6 +319,7 @@ left:20px;
 top:430px;
 color:white;
 font-size:30px;
-background-color:grey; -->
+background-color:grey;
+-->
 </body>
 </html>

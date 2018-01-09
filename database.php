@@ -81,10 +81,22 @@ function insert_template($file, $post, $conn) {
 
 	if(isset($post))
 	{
-		print_r($post);
+		// print_r($post);
+	}
+	$sql = "";
+	if(isset($post['id']))
+	{
+		// print_r($post['id']);
+		// $sql = "INSERT INTO `ed_template_file` (`config`, `id`) VALUES ('" . json_encode($post) . "', '" . $post['id'] . "')";
+
+		$sql = "UPDATE `ed_template_file` SET `config`='" . json_encode($post) . "' WHERE `id`=" . $post['id'];
+	} else {
+		$sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . json_encode($post) . "', '" . $tName . "')";
 	}
 
-	$sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . json_encode($post) . "', '" . $tName . "')";
+	
+
+	// $sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . json_encode($post) . "', '" . $tName . "')";
 
 	print_r($sql);
 
