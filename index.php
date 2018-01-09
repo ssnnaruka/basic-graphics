@@ -9,36 +9,35 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 
-<body style="padding:10px;">
-<div class="container">
-  <div class="row">
-    <div class="col">
-      1 of 3
+<body>
+
+<div class="row" style="margin:10px;">
+    <div class="col-md-3">
+        <div id="temp-selector" style=" box-shadow: 0px 0px 5px grey; margin-right: 10px; width:100%; height:100%; min-height:1000px; padding:10px;">
+            
+        </div>
     </div>
-    <div class="col-6">
-      2 of 3 (wider)
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="aInput">Select File Input</label>
+            <input type="file" name="file" class="form-control-file" id="aInput">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="addDiv()">Add Pane</button>
+
+        <div id="container" style="width: 100%; height: 500px; padding:10px;">
+            <div id="container_holder" style="position:relative; width:100%; height:100%; box-shadow: 0px 0px 5px grey; background-color:#e5e5e5; display: inline-block;"></div>     
+        </div>
+        <button type="button" class="btn btn-success" onclick="downloadImage()">Download Image</button>
     </div>
-    <div class="col">
-      3 of 3
+    <div class="col-md-3">
+        <div  style=" box-shadow: 0px 0px 5px grey; margin-right: 10px; width:100%; height:100%; min-height:1000px; padding:10px;">
+            <form id="text-area-pane">
+                <button type="submit" name="submit" class="btn btn-default" >Save Template</button>
+            </form>
+        </div>    
     </div>
 </div>
 
-    <div class="form-group">
-        <label for="aInput">Select File Input</label>
-        <input type="file" name="file" class="form-control-file" id="aInput">
-    </div>
-    <button type="button" class="btn btn-primary" onclick="addDiv()">Add Pane</button>
-
-    <div id="container" style="width: 100%; height: 500px; padding:10px;">
-        <div id="container_holder" style="position:relative; width:65%; height:100%; box-shadow: 0px 0px 5px grey; background-color:#e5e5e5; display: inline-block;"></div>
-        <div  style=" box-shadow: 0px 0px 5px grey; margin-right: 10px; width:25%; height:100%; padding:10px; float: right;">
-            <!-- <form id="text-area-pane" method="post" action="index.php"> -->
-            <form id="text-area-pane">
-            <button type="submit" name="submit" class="btn btn-default" >Save Template</button>
-            </form>
-        </div>
-    </div>
-    <button type="button" class="btn btn-success" onclick="downloadImage()">Download Image</button>
 <script type="text/javascript">
 console.log("CORE READY");
 
@@ -150,8 +149,42 @@ function renderImage(file) {
     reader.readAsDataURL(file);
 }
 
+function clickPreTemp(a){
+    console.log(a);
+}
+
+function fetchTemp(){
+    $.ajax({
+           url : "database.php", // the resource where youre request will go throw
+           type : "GET", // HTTP verb
+           success : function (res) {
+              //in your case, you should return from the php method some fomated data that you  //need throw the data var object in param
+              console.log(res);
+                 //data = toJson(response) // optional
+                //heres your code
+                $("#temp-selector").empty();
+                for(var x = 0; x < res.length; x++){
+                    // console.log(res[x]);
+                    var a = res[x];
+                    $("#temp-selector").append('<img id="' + res[x].id + '" alt="' + x + '" src="upload/' + res[x].image + '" style="float:left; width:140px; height:140px; margin:5px;">');
+                    $("#" + res[x].id).on("click", function(ev){
+                        // console.log($(this).attr("alt"));
+                        // console.log(res[$(this).attr("alt")]);
+                        $('#container_holder').empty();
+                        $('#container_holder').append('<img style="top:0px; width:100%; height:100%;" src="upload/' + res[$(this).attr("alt")].image + '" />');
+                    });
+                }
+           },
+           error : function(error, txt){
+            console.log(txt);
+           } 
+        });
+}
+
+
 $(document).ready(function() {
     console.log("Ready jquery");
+    fetchTemp();
     $("#aInput").change(function() {
         console.log("Input Changed");
         console.log(this.files);
