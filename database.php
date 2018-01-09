@@ -1,6 +1,6 @@
 <?php
-ini_set('display_errors','On'); 
-error_reporting(E_ALL); 
+// ini_set('display_errors','On'); 
+// error_reporting(E_ALL); 
 
 $servername = "localhost";
 $username = "root";
@@ -12,35 +12,87 @@ $conn = new mysqli($servername, $username, $password, 'ed_demo');
 // Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
-} 
-
-echo "Connected successfully...";
-
-$tName = "";
-if ($_FILES['file']['size'] > 0) {
-	$sourcePath = $_FILES['file']['tmp_name'];       // Storing source path of the file in a variable
-	$tName = $_FILES['file']['name'];
-	$targetPath = "upload/".$tName; // Target path where file is to be stored
-	move_uploaded_file($sourcePath,$targetPath) ;    // Moving Uploaded file
-} else {
-	echo "No file";
 }
 
-if(isset($_POST))
-{
-	print_r($_POST);
+// echo "Connected successfully...";
+
+	$request_method=$_SERVER["REQUEST_METHOD"];
+	switch($request_method)
+	{
+		case 'GET':
+			// Retrive Products
+			if(!empty($_GET["temp_id"]))
+			{
+				$product_id=intval($_GET["temp_id"]);
+				get_templates($product_id);
+			}
+			else
+			{
+				get_templates();
+			}
+			break;
+		case 'POST':
+			// Insert Product
+			insert_template($_FILES, $_POST, $conn);
+			break;
+		case 'PUT':
+			// Update Product
+			// $product_id=intval($_GET["product_id"]);
+			// update_product($product_id);
+			break;
+		case 'DELETE':
+			// Delete Product
+			// $product_id=intval($_GET["product_id"]);
+			// delete_product($product_id);
+			break;
+		default:
+			// Invalid Request Method
+			header("HTTP/1.0 405 Method Not Allowed");
+			break;
+	}
+
+function get_templates($temp_id = 0){
+	global $conn;
+	$query = "SELECT * FROM `ed_template_file`;";
+	if($temp_id != 0)
+	{
+		$query.=" WHERE id=".$temp_id." LIMIT 1";
+	}
+	$response = array();
+	$result = mysqli_query($conn, $query);
+	while($row = mysqli_fetch_array($result))
+	{
+		$response[] = $row;
+	}
+	header('Content-Type: application/json');
+	echo json_encode($response);
 }
 
-$sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . json_encode($_POST) . "', '" . $tName . "')";
+function insert_template($file, $post, $conn) {
+	$tName = "";
+	if ($file['file']['size'] > 0) {
+		$sourcePath = $file['file']['tmp_name'];       // Storing source path of the file in a variable
+		$tName = $file['file']['name'];
+		$targetPath = "upload/".$tName; // Target path where file is to be stored
+		move_uploaded_file($sourcePath,$targetPath) ;    // Moving Uploaded file
+	} else {
+		echo "No file";
+	}
 
-print_r($sql);
+	if(isset($post))
+	{
+		print_r($post);
+	}
 
-if ($conn->query($sql) === TRUE) {
-    echo "New record created successfully";
-} else {
-    echo "Error: " . $sql . "<br>" . $conn->error;
+	$sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . json_encode($post) . "', '" . $tName . "')";
+
+	print_r($sql);
+
+	if ($conn->query($sql) === TRUE) {
+	    echo "New record created successfully";
+	} else {
+	    echo "Error: " . $sql . "<br>" . $conn->error;
+	}
 }
-
-$conn->close();
 
 ?>

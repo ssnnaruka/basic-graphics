@@ -1,6 +1,6 @@
 {
-  "name": "webrtctest",
-  "version": "1.0.0",
+  "name": "EdGraphicsTest",
+  "version": "0.0.2",
   "description": "",
   "main": "server.js",
   "scripts": {

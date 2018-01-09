@@ -10,7 +10,19 @@
 </head>
 
 <body style="padding:10px;">
-    <!-- <h1>Hello WebRTC  TEST</h1> -->
+<div class="container">
+  <div class="row">
+    <div class="col">
+      1 of 3
+    </div>
+    <div class="col-6">
+      2 of 3 (wider)
+    </div>
+    <div class="col">
+      3 of 3
+    </div>
+</div>
+
     <div class="form-group">
         <label for="aInput">Select File Input</label>
         <input type="file" name="file" class="form-control-file" id="aInput">
@@ -188,5 +200,18 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<!-- text:!!! Hello World !!!;
+left:20px;
+top:50px;
+color:white;
+font-size:30px;
+
+text:!!! abc@gmail.com !!!;
+left:20px;
+top:430px;
+color:white;
+font-size:30px;
+background-color:grey; -->
 </body>
 </html>
