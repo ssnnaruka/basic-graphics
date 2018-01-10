@@ -189,34 +189,41 @@ function fetchTemp(){
 }
 
 function processTemplate(data, key){
+    $("#text-area-pane").find("div.form-group").remove();
     try {
         data  = JSON.parse(data);
         console.log(data);
         if(data.data !== undefined) {
-            if(data.data.indexOf("=") > -1) {
-                data = data.data.split("=");
-                $("#container_holder").append('<div style="display:none; top:0px; position:absolute;" id="' + data[0] + '">hello</div>');
-                data[1] = decodeURIComponent(data[1]);
-                if(data[1].indexOf(";") > -1){
-                    var cssS = data[1].split(";");
-                    for(var z = 0; z < cssS.length; z++){
-                        if(cssS[z].indexOf(":") > -1) {
-                            cssS[z] = cssS[z].trim();
-                            var qS = cssS[z].split(":");
-                            if(qS[0] === "text"){
-                                $("#" + data[0]).show();
-                                $("#" + data[0]).text(qS[1]);
-                                if(isAdmin) {
-                                    userEditTextArea(data[0], data[1], key);
-                                } else {
-                                    userEditTextArea(data[0], qS[1]);
+            if(data.data.indexOf("&") > -1) {
+                data = data.data.split("&");
+                for(var xyz = 0; xyz < data.length; xyz++){
+                    if(data[xyz].indexOf("=") > -1) {
+                        data123 = data[xyz].split("=");
+                        $("#container_holder").append('<div style="display:none; top:0px; position:absolute;" id="' + data123[0] + '">hello</div>');
+                        data123[1] = decodeURIComponent(data123[1]);
+                        if(data123[1].indexOf(";") > -1){
+                            var cssS = data123[1].split(";");
+                            for(var z = 0; z < cssS.length; z++){
+                                if(cssS[z].indexOf(":") > -1) {
+                                    cssS[z] = cssS[z].trim();
+                                    var qS = cssS[z].split(":");
+                                    if(qS[0] === "text"){
+                                        $("#" + data123[0]).show();
+                                        $("#" + data123[0]).text(qS[1]);
+                                        if(isAdmin) {
+                                            userEditTextArea(data123[0], data123[1], key);
+                                        } else {
+                                            userEditTextArea(data123[0], qS[1]);
+                                        }
+                                    } else {
+                                        $("#" + data123[0]).css(qS[0], qS[1]);
+                                    }
                                 }
-                            } else {
-                                $("#" + data[0]).css(qS[0], qS[1]);
                             }
                         }
                     }
                 }
+                    
             }
         }
     } catch(e) {
@@ -227,14 +234,17 @@ function processTemplate(data, key){
 function userEditTextArea(id, text, key){
     if(isAdmin){
         // TODO
-        $("#text-area-pane").find("div.form-group").remove();
-        $("#text-area-pane").append('<div class="form-group">' +
-        '<label for="idKey">ID:</label>'
-        + '<input class="form-control"  name="idKey" id="' + id + '-input" value="' + key + '" disabled />'
-        + '</div>');
+        // $("#text-area-pane").find("div.form-group").remove();
+        if($("#text-area-pane").find("input").length < 1) {
+            $("#text-area-pane").append('<div class="form-group">' +
+            '<label for="idKey">ID:</label>'
+            + '<input class="form-control"  name="idKey" id="' + id + '-input" value="' + key + '" disabled />'
+            + '</div>');
+        }
+        
         addCssTextArea(id, text);
     } else {
-        $("#text-area-pane").find("div.form-group").remove();
+        // $("#text-area-pane").find("div.form-group").remove();
         $("#text-area-pane").append('<div class="form-group">' +
         '<label for="comment">' + id + ':</label>'
         + '<textarea class="form-control" rows="3" name="' + id + '" id="' + id + '-area" placeholder="' + id + '-area"></textarea>'
