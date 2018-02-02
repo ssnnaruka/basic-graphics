@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Ed-Graphics</title>
+    <title>Ed-Graphics Clients</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.js"></script>
@@ -45,7 +45,7 @@ console.log("CORE READY");
 
 var countDiv = 0;
 
-var isAdmin = true;
+var isAdmin = false;
 var isEdit = false;
 
 function divToTextMapCode(div, textarea) {
@@ -358,7 +358,7 @@ function userEditTextArea(id, text, key) {
         }
         addCssTextArea(id, text);
     } else {
-        $("#text-area-pane").find("div.form-group").remove();
+        // $("#text-area-pane").find("div.form-group").remove();
         $("#text-area-pane").append('<div class="form-group">' +
         '<label for="comment">' + id + ':</label>'
         + '<textarea class="form-control" rows="3" name="' + id + '" id="' + id + '-area" placeholder="' + id + '-area"></textarea>'
