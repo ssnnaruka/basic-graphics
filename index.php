@@ -7,6 +7,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 </head>
 
 <body>
@@ -46,21 +48,92 @@ var countDiv = 0;
 var isAdmin = true;
 var isEdit = false;
 
+function divToTextMapCode(div, textarea) {
+    console.log($(div).text());
+    var val1 = $(textarea).val();
+    var valTo = "";
+    if (val1.indexOf("\n") > -1) {
+        val1 = val1.split("\n");
+        console.log(val1);
+        for (var x = 0; x < val1.length; x++) {
+            val = val1[x];
+            console.log(val);
+            if (val.indexOf(";") > -1) {
+                val = val.split(";");
+                for (let a = 0; a < val.length; a++) {
+                    let keyP = val[a];
+                    if (keyP.indexOf(":") > -1) {
+                        keyP = keyP.split(":");
+                        if (keyP.length > 0 && keyP.length < 3) {
+                            if(keyP[0] === "text") {
+                                valTo += keyP[0] + ":" + $(div).text() + ";\n";
+                            } else if (keyP[0] === "top") {
+                                valTo += keyP[0] + ":" + $(div).css("top") + ";\n";
+                            } else if (keyP[0] === "left") {
+                                valTo += keyP[0] + ":" + $(div).css("left") + ";\n";
+                            } else {
+                                valTo += keyP[0] + ":" + keyP[1] + ";\n";
+                            }
+                        }
+                    }
+                }
+                // if(!top) {   
+                //     $(this).val($(this).val() + "\n" + "top:" + $("#" + id).css("top") + ";");
+                // }
+                // if(!left){
+                //     $(this).val($(this).val() + "\n" + "left:" + $("#" + id).css("left") + ";");
+                // }
+            }
+        }
+    } else if(val1 === ""){
+        valTo += "text:" + $(div).text() + ";\n";
+        valTo += "top:" + $(div).css("top") + ";\n";
+        valTo += "left:" + $(div).css("left") + ";\n";
+    } else {
+        valTo = val1;
+    }
+    $(textarea).val(valTo);
+}
+
+function divEventCreate(div) {
+    if(isAdmin) {
+        $(div).on('input', (e) => {
+            divToTextMapCode(div, div + '-area');
+            console.log("Changed")
+        });
+        $(div).draggable({
+            start: function() {
+                console.log("Start");
+            },
+            drag: function() {
+                console.log("Drag...");
+            },
+            stop: function() {
+                divToTextMapCode(this, div + '-area');
+                console.log("Stop");
+            }
+        }).click(function() {
+            $(this).draggable( {disabled: false});
+        }).dblclick(function() {
+            $(this).draggable({ disabled: true });
+        });
+    }
+}
+
 function addDiv() {
     isEdit = false;
     var date = Date.now();
     console.log("Add Div Called");
-    $("#container_holder").append('<div style="" id="text-pane-' + date + '">hello</div>');
+    $("#container_holder").append('<div style="" contenteditable="true" id="text-pane-' + date + '">hello</div>');
     $("#text-pane-" + date).css("position", "absolute");
     $("#text-pane-" + date).css("top", 0);
-    // $("#text-pane-" + date).css("top", 50 * countDiv + 10);
-    addCssTextArea("text-pane-" + date);
+    divEventCreate("#text-pane-" + date);
+    addCssTextArea("text-pane-" + date); // TODO later
     countDiv++;
 }
 
 function addCssTextArea(id, val) {
     console.log("Adding listener");
-    // onchange="textChanged(' + id +', ' + id + '-area)"
     $("#text-area-pane").append('<div class="form-group">' +
         '<label for="comment">' + id + ':</label>'
         + '<textarea class="form-control" rows="3" name="' + id + '" id="' + id + '-area" placeholder="' + id + '-area"></textarea>'
@@ -77,6 +150,8 @@ function addCssTextArea(id, val) {
     $("#" + id + '-area').on('change textInput input', function() {
         // console.log("changed");
         // console.log($(this).val());
+        let top = false;
+        let left = false;
         var val1 = $(this).val();
         if (val1.indexOf("\n") > -1) {
             val1 = val1.split("\n");
@@ -93,17 +168,27 @@ function addCssTextArea(id, val) {
                             if (keyP.length > 0 && keyP.length < 3) {
                                 if (keyP[0] === "text") {
                                     $("#" + id).text(keyP[1]);
+                                } else if (keyP[0] === "top") {
+                                    top = true;
+                                } else if (keyP[0] === "left") {
+                                    left = true;
                                 } else {
                                     $("#" + id).css(keyP[0], keyP[1]);
                                 }
                             }
                         }
                     }
+                    // if(!top) {   
+                    //     $(this).val($(this).val() + "\n" + "top:" + $("#" + id).css("top") + ";");
+                    // }
+                    // if(!left){
+                    //     $(this).val($(this).val() + "\n" + "left:" + $("#" + id).css("left") + ";");
+                    // }
                 }
             }
         } else {
             $("#" + id).css("position", "absolute");
-            $("#" + id).css("top", 0);
+            // $("#" + id).css("top", 0);
             // $("#" + id).css("top", 50 * countDiv + 10);
         }
     });
@@ -189,41 +274,38 @@ function fetchTemp(){
 }
 
 function processTemplate(data, key){
-    $("#text-area-pane").find("div.form-group").remove();
     try {
         data  = JSON.parse(data);
         console.log(data);
         if(data.data !== undefined) {
-            if(data.data.indexOf("&") > -1) {
-                data = data.data.split("&");
-                for(var xyz = 0; xyz < data.length; xyz++){
-                    if(data[xyz].indexOf("=") > -1) {
-                        data123 = data[xyz].split("=");
-                        $("#container_holder").append('<div style="display:none; top:0px; position:absolute;" id="' + data123[0] + '">hello</div>');
-                        data123[1] = decodeURIComponent(data123[1]);
-                        if(data123[1].indexOf(";") > -1){
-                            var cssS = data123[1].split(";");
-                            for(var z = 0; z < cssS.length; z++){
-                                if(cssS[z].indexOf(":") > -1) {
-                                    cssS[z] = cssS[z].trim();
-                                    var qS = cssS[z].split(":");
-                                    if(qS[0] === "text"){
-                                        $("#" + data123[0]).show();
-                                        $("#" + data123[0]).text(qS[1]);
-                                        if(isAdmin) {
-                                            userEditTextArea(data123[0], data123[1], key);
-                                        } else {
-                                            userEditTextArea(data123[0], qS[1]);
-                                        }
-                                    } else {
-                                        $("#" + data123[0]).css(qS[0], qS[1]);
-                                    }
+            if(data.data.indexOf("=") > -1) {
+                data = data.data.split("=");
+                $("#container_holder").append('<div contenteditable="true" style="display:none; top:0px; position:absolute;" id="' + data[0] + '">hello</div>');
+                data[1] = decodeURIComponent(data[1]);
+                if(data[1].indexOf(";") > -1) {
+                    var cssS = data[1].split(";");
+                    for(var z = 0; z < cssS.length; z++){
+                        if(cssS[z].indexOf(":") > -1) {
+                            cssS[z] = cssS[z].trim();
+                            var qS = cssS[z].split(":");
+                            if(qS[0] === "text"){
+                                $("#" + data[0]).show();
+                                $("#" + data[0]).text(qS[1]);
+                                if(isAdmin) {
+                                    console.log(data);
+                                    console.log(key);
+                                    userEditTextArea(data[0], data[1], key);
+                                    divToTextMapCode("#" + data[0], "#" + data[0] + "-area");
+                                    divEventCreate("#" + data[0]);
+                                } else {
+                                    // userEditTextArea(data[0], qS[1]); // TODO Add later if required 
                                 }
+                            } else {
+                                $("#" + data[0]).css(qS[0], qS[1]);
                             }
                         }
                     }
                 }
-                    
             }
         }
     } catch(e) {
@@ -234,17 +316,14 @@ function processTemplate(data, key){
 function userEditTextArea(id, text, key){
     if(isAdmin){
         // TODO
-        // $("#text-area-pane").find("div.form-group").remove();
-        if($("#text-area-pane").find("input").length < 1) {
-            $("#text-area-pane").append('<div class="form-group">' +
-            '<label for="idKey">ID:</label>'
-            + '<input class="form-control"  name="idKey" id="' + id + '-input" value="' + key + '" disabled />'
-            + '</div>');
-        }
-        
+        $("#text-area-pane").find("div.form-group").remove();
+        $("#text-area-pane").append('<div class="form-group">' +
+        '<label for="idKey">ID:</label>'
+        + '<input class="form-control"  name="idKey" id="' + id + '-input" value="' + key + '" disabled />'
+        + '</div>');
         addCssTextArea(id, text);
     } else {
-        // $("#text-area-pane").find("div.form-group").remove();
+        $("#text-area-pane").find("div.form-group").remove();
         $("#text-area-pane").append('<div class="form-group">' +
         '<label for="comment">' + id + ':</label>'
         + '<textarea class="form-control" rows="3" name="' + id + '" id="' + id + '-area" placeholder="' + id + '-area"></textarea>'
