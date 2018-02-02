@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>WebRTC Test</title>
+    <title>Ed-Graphics</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.js"></script>
@@ -66,11 +66,28 @@ function divToTextMapCode(div, textarea) {
                         keyP = keyP.split(":");
                         if (keyP.length > 0 && keyP.length < 3) {
                             if(keyP[0] === "text") {
-                                valTo += keyP[0] + ":" + $(div).text() + ";\n";
+                                if($(div).text() !== undefined && $(div).text() !== "") {
+                                    valTo += keyP[0] + ":" + $(div).text() + ";\n";
+                                } else {
+                                    valTo += keyP[0] + ":" + keyP[1] + ";\n";
+                                }
                             } else if (keyP[0] === "top") {
-                                valTo += keyP[0] + ":" + $(div).css("top") + ";\n";
+                                if($(div).css("top") !== undefined && $(div).css("top") !== "" && $(div).css("top") !== "0px") {
+                                    valTo += keyP[0] + ":" + $(div).position().top  + "px;\n";
+                                } else if($(div).position().top !== undefined && $(div).position().top !== "" && $(div).position().top !== 0) {
+                                    valTo += keyP[0] + ":" + $(div).position().top + "px;\n";
+                                } else {
+                                    valTo += keyP[0] + ":" + keyP[1] + ";\n";
+                                }
                             } else if (keyP[0] === "left") {
-                                valTo += keyP[0] + ":" + $(div).css("left") + ";\n";
+                                if($(div).css("left") !== undefined && $(div).css("left") !== "" && $(div).css("left") !== "0px") {
+                                    valTo += keyP[0] + ":" + $(div).position().left + "px;\n";
+                                } else if($(div).position().left !== undefined && $(div).position().left !== "" && $(div).position().left !== 0) {
+                                    valTo += keyP[0] + ":" + $(div).position().left + "px;\n";
+                                } else {
+                                    valTo += keyP[0] + ":" + keyP[1] + ";\n";
+                                }
+                                
                             } else {
                                 valTo += keyP[0] + ":" + keyP[1] + ";\n";
                             }
@@ -87,8 +104,8 @@ function divToTextMapCode(div, textarea) {
         }
     } else if(val1 === ""){
         valTo += "text:" + $(div).text() + ";\n";
-        valTo += "top:" + $(div).css("top") + ";\n";
-        valTo += "left:" + $(div).css("left") + ";\n";
+        valTo += "top:" + $(div).position().top + "px;\n";
+        valTo += "left:" + $(div).position().left + "px;\n";
     } else {
         valTo = val1;
     }
@@ -193,7 +210,16 @@ function addCssTextArea(id, val) {
         }
     });
     if(val !== undefined && val !== "") {
-        $("#" + id + '-area').val(val);
+        let jk = "";
+        if(val.indexOf(";") > -1 && false){
+            val123 = val.split(";");
+            for(let xyz = 0; xyz < val123.length; xyz++) {
+                jk += val123[xyz] + ";\n";
+            }
+        } else {
+            jk = val + "\n";
+        }
+        $("#" + id + '-area').val(jk);
     }
     
 }
@@ -242,6 +268,8 @@ function renderImage(file) {
 }
 
 function fetchTemp(){
+    $("#text-area-pane").find("div.form-group").remove();
+    $('#container_holder').empty();
     $.ajax({
            url : "database.php", // the resource where youre request will go throw
            type : "GET", // HTTP verb
@@ -275,52 +303,59 @@ function fetchTemp(){
 
 function processTemplate(data, key){
     try {
+        data = data.replace(/(?:\r\n|\r|\n)/g, '');
         data  = JSON.parse(data);
         console.log(data);
-        if(data.data !== undefined) {
-            if(data.data.indexOf("=") > -1) {
-                data = data.data.split("=");
-                $("#container_holder").append('<div contenteditable="true" style="display:none; top:0px; position:absolute;" id="' + data[0] + '">hello</div>');
-                data[1] = decodeURIComponent(data[1]);
-                if(data[1].indexOf(";") > -1) {
-                    var cssS = data[1].split(";");
-                    for(var z = 0; z < cssS.length; z++){
-                        if(cssS[z].indexOf(":") > -1) {
-                            cssS[z] = cssS[z].trim();
-                            var qS = cssS[z].split(":");
-                            if(qS[0] === "text"){
-                                $("#" + data[0]).show();
-                                $("#" + data[0]).text(qS[1]);
-                                if(isAdmin) {
-                                    console.log(data);
-                                    console.log(key);
-                                    userEditTextArea(data[0], data[1], key);
-                                    divToTextMapCode("#" + data[0], "#" + data[0] + "-area");
-                                    divEventCreate("#" + data[0]);
-                                } else {
-                                    // userEditTextArea(data[0], qS[1]); // TODO Add later if required 
+        if(data !== undefined) {
+            isInputS = true;
+            $("#text-area-pane").find("div.form-group").remove();
+            for(let n = 0; n < data.length; n++) {
+                if(data[n].name !== undefined && data[n].value !== undefined) {
+                    $("#container_holder").append('<div contenteditable="true" style="display:none; top:0px; position:absolute;" id="' + data[n].name + '">Click to edit text.</div>');
+                     data[n].value = decodeURIComponent(data[n].value);
+                        if(data[n].value.indexOf(";") > -1) {
+                            var cssS = data[n].value.split(";");
+                            for(var z = 0; z < cssS.length; z++){
+                                if(cssS[z].indexOf(":") > -1) {
+                                    cssS[z] = cssS[z].trim();
+                                    var qS = cssS[z].split(":");
+                                    if(qS[0] === "text"){
+                                        $("#" + data[n].name).show();
+                                        $("#" + data[n].name).text(qS[1]);
+                                        if(isAdmin) {
+                                            console.log(data);
+                                            console.log(key);
+                                            userEditTextArea(data[n].name, data[n].value, key);
+                                            divToTextMapCode("#" + data[n].name, "#" + data[n].name + "-area");
+                                            divEventCreate("#" + data[n].name);
+                                        } else {
+                                            // userEditTextArea(data[n].name, qS[1]); // TODO Add later if required 
+                                        }
+                                    } else {
+                                        $("#" + data[n].name).css(qS[0], qS[1]);
+                                    }
                                 }
-                            } else {
-                                $("#" + data[0]).css(qS[0], qS[1]);
                             }
                         }
-                    }
-                }
-            }
+                } 
+            }   
         }
     } catch(e) {
         console.log(e);
     }
 }
-
-function userEditTextArea(id, text, key){
+var isInputS = false;
+function userEditTextArea(id, text, key) {
     if(isAdmin){
         // TODO
-        $("#text-area-pane").find("div.form-group").remove();
-        $("#text-area-pane").append('<div class="form-group">' +
-        '<label for="idKey">ID:</label>'
-        + '<input class="form-control"  name="idKey" id="' + id + '-input" value="' + key + '" disabled />'
-        + '</div>');
+        // $("#text-area-pane").find("div.form-group").remove();
+        if(isInputS) {
+            isInputS = false;
+            $("#text-area-pane").append('<div class="form-group">' +
+            '<label for="idKey">ID:</label>'
+            + '<input class="form-control"  name="idKey" id="' + id + '-input" value="' + key + '" disabled />'
+            + '</div>');
+        }
         addCssTextArea(id, text);
     } else {
         $("#text-area-pane").find("div.form-group").remove();
@@ -348,11 +383,15 @@ $(document).ready(function() {
     $("#text-area-pane").submit(function(ev){
         ev.preventDefault();
         console.info("Submit in progress...");
-        var data1 = $("#text-area-pane").serialize();
-
+        // var data1 = $("#text-area-pane").serialize();
+        var data1 = $("#text-area-pane").serializeArray();
+        console.log(data1);
         // console.log($("#aInput")[0].files[0]);
         var form_data = new FormData();
-        if(!isEdit) {
+
+        if($("#text-area-pane").find("input").val() !== undefined) {
+            form_data.append("id", parseInt($("#text-area-pane").find("input").val()));    
+        } else {
             if($("#aInput")[0].files[0] !== undefined) {
                 form_data.append("file", $("#aInput")[0].files[0]);    
             } else {
@@ -360,10 +399,17 @@ $(document).ready(function() {
                 return false;
             }
         }
-        if($("#text-area-pane").find("input").val() !== undefined) {
-            form_data.append("id", parseInt($("#text-area-pane").find("input").val()));    
-        }
-        form_data.append("data", data1);
+
+        // if(!isEdit) {
+        //     if($("#aInput")[0].files[0] !== undefined) {
+        //         form_data.append("file", $("#aInput")[0].files[0]);    
+        //     } else {
+        //         alert("File is missing cannot save template");
+        //         return false;
+        //     }
+        // }
+        
+        form_data.append("data", JSON.stringify(data1));
         $.ajax({
            url : "database.php", // the resource where youre request will go throw
            type : "POST", // HTTP verb

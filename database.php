@@ -89,16 +89,27 @@ function insert_template($file, $post, $conn) {
 		// print_r($post['id']);
 		// $sql = "INSERT INTO `ed_template_file` (`config`, `id`) VALUES ('" . json_encode($post) . "', '" . $post['id'] . "')";
 
-		$sql = "UPDATE `ed_template_file` SET `config`='" . json_encode($post) . "' WHERE `id`=" . $post['id'];
+		$sql = "UPDATE `ed_template_file` SET `config`='" . $post['data'] . "' WHERE `id`=" . $post['id'];
 	} else {
-		$sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . json_encode($post) . "', '" . $tName . "')";
+		// $sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . json_encode($post) . "', '" . $tName . "')";
+		$sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . $post['data'] . "', '" . $tName . "')";
 	}
 
 	
 
 	// $sql = "INSERT INTO `ed_template_file` (`config`, `image`) VALUES ('" . json_encode($post) . "', '" . $tName . "')";
 
-	print_r($sql);
+	// print_r($sql);
+
+	print_r($post);
+	print_r($post['data']);
+
+	// $js1 = json_encode($post);
+	// print_r($js1);
+	// $js2 = json_decode($js1);
+	// print_r($js2);
+	// print_r($js1['data']);
+	// print_r($js2['data']);
 
 	if ($conn->query($sql) === TRUE) {
 	    echo "New record created successfully";
